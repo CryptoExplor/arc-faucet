@@ -1,8 +1,8 @@
 {
   "name": "circle-faucet-vercel",
   "version": "1.0.0",
+  "type": "module",
   "description": "Circle Testnet Faucet Claimer - Vercel Deployment",
-  "main": "api/claim.js",
   "scripts": {
     "dev": "vercel dev",
     "deploy": "vercel --prod"

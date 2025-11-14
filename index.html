@@ -451,7 +451,25 @@
                 });
                 
                 console.log('Response status:', response.status);
-                const data = await response.json();
+                console.log('Response headers:', response.headers.get('content-type'));
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                let data;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    // If not JSON, get text to see the actual error
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    data = { 
+                        error: 'Server error',
+                        message: text.substring(0, 200),
+                        fullError: text
+                    };
+                }
+                
                 console.log('Response data:', data);
                 
                 if (response.ok) {

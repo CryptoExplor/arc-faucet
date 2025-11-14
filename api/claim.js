@@ -4,23 +4,25 @@ const https = require('https');
 const CIRCLE_API_KEY = process.env.CIRCLE_API_KEY || "TEST_API_KEY:1ef93a2a482adb58df2c615510b24c61:81b8e96bb7cb449fceba22574630ea0c";
 
 module.exports = async (req, res) => {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  // Only allow POST
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
   try {
-    const data = req.body;
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+
+    // Only allow POST
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    console.log('API called with body:', req.body);
+
+    const data = req.body || {};
 
     // Validate required fields
     if (!data.address) {
@@ -49,6 +51,8 @@ module.exports = async (req, res) => {
       payload.eurc = { amount: "5" };
     }
 
+    console.log('Calling Circle API with payload:', payload);
+
     const postData = JSON.stringify(payload);
 
     // Make request to Circle API
@@ -74,6 +78,7 @@ module.exports = async (req, res) => {
         });
 
         apiRes.on('end', () => {
+          console.log('Circle API response:', responseData);
           try {
             const parsedData = JSON.parse(responseData);
             resolve({
@@ -81,15 +86,17 @@ module.exports = async (req, res) => {
               data: parsedData
             });
           } catch (e) {
+            console.error('Failed to parse Circle response:', e);
             resolve({
               statusCode: apiRes.statusCode,
-              data: { raw: responseData }
+              data: { raw: responseData, parseError: e.message }
             });
           }
         });
       });
 
       apiReq.on('error', (error) => {
+        console.error('HTTPS request error:', error);
         reject(error);
       });
 
@@ -97,14 +104,17 @@ module.exports = async (req, res) => {
       apiReq.end();
     });
 
+    console.log('Returning response:', circleResponse);
+
     // Return Circle's response
     return res.status(circleResponse.statusCode).json(circleResponse.data);
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Caught error:', error);
     return res.status(500).json({ 
       error: 'Internal server error',
-      message: error.message 
+      message: error.message,
+      stack: error.stack
     });
   }
 };

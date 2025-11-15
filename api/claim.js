@@ -1,38 +1,24 @@
-// Build the request payload
-    // Circle API accepts booleans for token requests
-    const payload = {
-      address: data.address,
-      blockchain: data.blockchain
-    };
+import https from 'https';
 
-    // Add boolean flags for requested tokens
-    if (data.nativeimport https from 'https';
-
-// Get API key from environment variable or use default
 const CIRCLE_API_KEY = process.env.CIRCLE_API_KEY || "TEST_API_KEY:1ef93a2a482adb58df2c615510b24c61:81b8e96bb7cb449fceba22574630ea0c";
 
 export default async function handler(req, res) {
   try {
-    // Set CORS headers
+    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Handle preflight
     if (req.method === 'OPTIONS') {
       return res.status(200).end();
     }
 
-    // Only allow POST
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    console.log('API called with body:', req.body);
-
     const data = req.body || {};
 
-    // Validate required fields
     if (!data.address) {
       return res.status(400).json({ error: 'Wallet address required' });
     }
@@ -41,30 +27,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Blockchain network required' });
     }
 
-    // Build the request payload
-    // Circle's example only sends address and blockchain
+    // Build payload - Circle API accepts booleans
     const payload = {
       address: data.address,
       blockchain: data.blockchain
     };
 
-    // Check Circle's API docs for exact format of token selection
-    // Based on the enhanced-server.js, it uses amount objects
-    if (data.native) {
-      payload.native = { amount: "0.01" };
-    }
-    if (data.usdc) {
-      payload.usdc = { amount: "5" };
-    }
-    if (data.eurc) {
-      payload.eurc = { amount: "5" };
-    }
-
-    console.log('Calling Circle API with payload:', payload);
+    if (data.native) payload.native = true;
+    if (data.usdc) payload.usdc = true;
+    if (data.eurc) payload.eurc = true;
 
     const postData = JSON.stringify(payload);
 
-    // Make request to Circle API
+    // Circle API request
     const options = {
       hostname: 'api.circle.com',
       port: 443,
@@ -77,7 +52,6 @@ export default async function handler(req, res) {
       }
     };
 
-    // Promisify the HTTPS request
     const circleResponse = await new Promise((resolve, reject) => {
       const apiReq = https.request(options, (apiRes) => {
         let responseData = '';
@@ -87,7 +61,6 @@ export default async function handler(req, res) {
         });
 
         apiRes.on('end', () => {
-          console.log('Circle API response:', responseData);
           try {
             const parsedData = JSON.parse(responseData);
             resolve({
@@ -95,17 +68,15 @@ export default async function handler(req, res) {
               data: parsedData
             });
           } catch (e) {
-            console.error('Failed to parse Circle response:', e);
             resolve({
               statusCode: apiRes.statusCode,
-              data: { raw: responseData, parseError: e.message }
+              data: { raw: responseData }
             });
           }
         });
       });
 
       apiReq.on('error', (error) => {
-        console.error('HTTPS request error:', error);
         reject(error);
       });
 
@@ -113,17 +84,13 @@ export default async function handler(req, res) {
       apiReq.end();
     });
 
-    console.log('Returning response:', circleResponse);
-
-    // Return Circle's response
     return res.status(circleResponse.statusCode).json(circleResponse.data);
 
   } catch (error) {
-    console.error('Caught error:', error);
+    console.error('Error:', error);
     return res.status(500).json({ 
       error: 'Internal server error',
-      message: error.message,
-      stack: error.stack
+      message: error.message
     });
   }
 }

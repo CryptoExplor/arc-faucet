@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circle Faucet Claimer</title>
+    <title>Circle Faucet Claimer - Batch Mode</title>
     <style>
         * {
             margin: 0;
@@ -26,7 +26,7 @@
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
+            max-width: 800px;
             width: 100%;
             animation: slideIn 0.5s ease-out;
         }
@@ -68,16 +68,19 @@
             font-size: 14px;
         }
         
-        input[type="text"] {
+        textarea {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
             transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 150px;
         }
         
-        input[type="text"]:focus {
+        textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -163,74 +166,120 @@
             transform: none;
         }
         
-        .result {
+        .progress {
             margin-top: 20px;
-            padding: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
             border-radius: 8px;
-            font-size: 14px;
-            line-height: 1.6;
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .result.success {
-            background-color: #d4edda;
-            border: 2px solid #28a745;
-            color: #155724;
-        }
-        
-        .result.error {
-            background-color: #f8d7da;
-            border: 2px solid #dc3545;
-            color: #721c24;
-        }
-        
-        .result.warning {
-            background-color: #fff3cd;
-            border: 2px solid #ffc107;
-            color: #856404;
-        }
-        
-        .result.info {
-            background-color: #d1ecf1;
-            border: 2px solid #17a2b8;
-            color: #0c5460;
-        }
-        
-        .hidden {
             display: none;
         }
         
-        .loading {
+        .progress.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .address-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .address-list.active {
+            display: block;
+        }
+        
+        .address-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+        }
+        
+        .address-item:last-child {
+            border-bottom: none;
+        }
+        
+        .address-item.pending {
+            background-color: #fff;
+        }
+        
+        .address-item.processing {
+            background-color: #fff3cd;
+        }
+        
+        .address-item.success {
+            background-color: #d4edda;
+        }
+        
+        .address-item.error {
+            background-color: #f8d7da;
+        }
+        
+        .status-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .address-text {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            word-break: break-all;
+        }
+        
+        .status-text {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .loading-spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
             border-radius: 50%;
-            border-top-color: white;
+            border-top-color: #667eea;
             animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-            vertical-align: middle;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
-        }
-        
-        .response-data {
-            background: rgba(0, 0, 0, 0.05);
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
         }
         
         .info-box {
@@ -258,37 +307,53 @@
             margin-bottom: 5px;
         }
         
-        .tips {
+        .stats {
+            display: flex;
+            gap: 15px;
             margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(0,0,0,0.1);
+            flex-wrap: wrap;
         }
         
-        .tips strong {
-            display: block;
-            margin-bottom: 8px;
+        .stat-item {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚰 Circle Faucet Claimer</h1>
-        <p class="subtitle">Claim testnet tokens on Arc and other networks</p>
+        <h1>🚰 Circle Faucet Claimer - Batch Mode</h1>
+        <p class="subtitle">Claim testnet tokens for multiple addresses automatically</p>
         
         <div class="info-box">
-            <strong>ℹ️ Faucet Rate Limits:</strong>
-            Circle's faucet has strict rate limits to prevent abuse:
+            <strong>ℹ️ Batch Claiming Instructions:</strong>
             <ul>
-                <li><strong>Per wallet:</strong> 1 claim every 24 hours</li>
-                <li><strong>Per IP:</strong> Limited requests per hour</li>
-                <li><strong>Per network:</strong> Daily claim limits apply</li>
+                <li>Enter one wallet address per line</li>
+                <li>The app will claim tokens for each address automatically</li>
+                <li>Rate limit: 1 claim per 24 hours per address/network</li>
+                <li>Failed claims will be marked in red</li>
             </ul>
-            If you see a rate limit error, try a different wallet or network.
         </div>
         
         <div class="form-group">
-            <label for="address">Wallet Address *</label>
-            <input type="text" id="address" placeholder="0x...">
+            <label for="addresses">Wallet Addresses (one per line) *</label>
+            <textarea id="addresses" placeholder="0x123...&#10;0x456...&#10;0x789..."></textarea>
         </div>
         
         <div class="form-group">
@@ -325,111 +390,156 @@
             </div>
         </div>
         
-        <button type="button" id="submitBtn" onclick="claimTokens()">
-            Claim Tokens
+        <button type="button" id="submitBtn" onclick="startBatchClaim()">
+            Start Batch Claim
         </button>
         
-        <div id="result" class="result hidden"></div>
+        <div id="progress" class="progress">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill">0%</div>
+            </div>
+            <div id="progressText" class="progress-text">Processing...</div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalCount">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="successCount">0</div>
+                    <div class="stat-label">Success</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="errorCount">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="pendingCount">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="addressList" class="address-list"></div>
     </div>
 
     <script>
-        let lastClaimTime = {};
-        const COOLDOWN_HOURS = 24;
-        
-        // Get API endpoint - Vercel automatically routes /api/* to serverless functions
         const API_ENDPOINT = '/api/claim';
+        let isProcessing = false;
+        let stats = { total: 0, success: 0, error: 0, pending: 0 };
         
-        // Load claim history
-        function loadClaimHistory() {
-            try {
-                const stored = localStorage.getItem('circleFaucetClaims');
-                if (stored) {
-                    lastClaimTime = JSON.parse(stored);
-                }
-            } catch (e) {
-                console.error('Failed to load claim history:', e);
-            }
-        }
-        
-        // Save claim history
-        function saveClaimHistory() {
-            try {
-                localStorage.setItem('circleFaucetClaims', JSON.stringify(lastClaimTime));
-            } catch (e) {
-                console.error('Failed to save claim history:', e);
-            }
-        }
-        
-        // Check if address can claim
-        function canClaim(address, blockchain) {
-            const key = `${address}-${blockchain}`;
-            if (!lastClaimTime[key]) return { canClaim: true };
+        async function startBatchClaim() {
+            if (isProcessing) return;
             
-            const lastClaim = new Date(lastClaimTime[key]);
-            const now = new Date();
-            const hoursPassed = (now - lastClaim) / (1000 * 60 * 60);
-            
-            if (hoursPassed < COOLDOWN_HOURS) {
-                const hoursRemaining = COOLDOWN_HOURS - hoursPassed;
-                return { 
-                    canClaim: false, 
-                    hoursRemaining: hoursRemaining,
-                    nextClaimTime: new Date(lastClaim.getTime() + (COOLDOWN_HOURS * 60 * 60 * 1000))
-                };
-            }
-            
-            return { canClaim: true };
-        }
-        
-        // Record successful claim
-        function recordClaim(address, blockchain) {
-            const key = `${address}-${blockchain}`;
-            lastClaimTime[key] = new Date().toISOString();
-            saveClaimHistory();
-        }
-        
-        async function claimTokens() {
-            const address = document.getElementById('address').value.trim();
+            const addressesText = document.getElementById('addresses').value.trim();
             const blockchain = document.getElementById('blockchain').value;
             const native = document.getElementById('native').checked;
             const usdc = document.getElementById('usdc').checked;
             const eurc = document.getElementById('eurc').checked;
-            const submitBtn = document.getElementById('submitBtn');
-            const resultDiv = document.getElementById('result');
             
             // Validation
-            if (!address) {
-                showResult('error', '❌ Please enter a wallet address');
+            if (!addressesText) {
+                alert('❌ Please enter at least one wallet address');
                 return;
             }
             
             if (!native && !usdc && !eurc) {
-                showResult('error', '❌ Please select at least one token to claim');
+                alert('❌ Please select at least one token to claim');
                 return;
             }
             
-            // Check cooldown
-            loadClaimHistory();
-            const claimCheck = canClaim(address, blockchain);
-            if (!claimCheck.canClaim) {
-                const hours = Math.floor(claimCheck.hoursRemaining);
-                const minutes = Math.floor((claimCheck.hoursRemaining % 1) * 60);
-                showResult('warning', 
-                    `⏰ Rate Limit: You already claimed from this address on ${blockchain}`,
-                    {
-                        message: `Please wait ${hours}h ${minutes}m before claiming again`,
-                        nextClaimTime: claimCheck.nextClaimTime.toLocaleString(),
-                        tip: 'Try a different wallet address or blockchain network'
-                    }
-                );
+            // Parse addresses
+            const addresses = addressesText.split('\n')
+                .map(addr => addr.trim())
+                .filter(addr => addr.length > 0);
+            
+            if (addresses.length === 0) {
+                alert('❌ No valid addresses found');
                 return;
             }
             
-            // Disable button and show loading state
+            // Initialize
+            isProcessing = true;
+            stats = { total: addresses.length, success: 0, error: 0, pending: addresses.length };
+            updateStats();
+            
+            const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="loading"></span>Claiming...';
-            resultDiv.classList.add('hidden');
+            submitBtn.textContent = 'Processing...';
             
+            const progressDiv = document.getElementById('progress');
+            progressDiv.classList.add('active');
+            
+            const addressListDiv = document.getElementById('addressList');
+            addressListDiv.classList.add('active');
+            addressListDiv.innerHTML = '';
+            
+            // Create address items
+            const addressItems = addresses.map((addr, index) => {
+                const item = document.createElement('div');
+                item.className = 'address-item pending';
+                item.id = `addr-${index}`;
+                item.innerHTML = `
+                    <div class="status-icon">⏳</div>
+                    <div class="address-text">${addr}</div>
+                    <div class="status-text">Waiting...</div>
+                `;
+                addressListDiv.appendChild(item);
+                return { element: item, address: addr, index };
+            });
+            
+            // Process each address
+            for (let i = 0; i < addressItems.length; i++) {
+                const { element, address, index } = addressItems[i];
+                
+                // Update UI to processing
+                element.className = 'address-item processing';
+                element.querySelector('.status-icon').innerHTML = '<div class="loading-spinner"></div>';
+                element.querySelector('.status-text').textContent = 'Claiming...';
+                
+                // Update progress
+                const progress = Math.round(((i) / addresses.length) * 100);
+                updateProgress(progress, `Processing ${i + 1} of ${addresses.length}...`);
+                
+                // Make claim request
+                try {
+                    const result = await claimTokens(address, blockchain, native, usdc, eurc);
+                    
+                    if (result.success) {
+                        element.className = 'address-item success';
+                        element.querySelector('.status-icon').textContent = '✅';
+                        element.querySelector('.status-text').textContent = 'Success!';
+                        stats.success++;
+                    } else {
+                        element.className = 'address-item error';
+                        element.querySelector('.status-icon').textContent = '❌';
+                        element.querySelector('.status-text').textContent = result.error || 'Failed';
+                        stats.error++;
+                    }
+                } catch (error) {
+                    element.className = 'address-item error';
+                    element.querySelector('.status-icon').textContent = '❌';
+                    element.querySelector('.status-text').textContent = error.message;
+                    stats.error++;
+                }
+                
+                stats.pending--;
+                updateStats();
+                
+                // Add delay between requests to avoid rate limiting
+                if (i < addressItems.length - 1) {
+                    await sleep(2000); // 2 second delay between claims
+                }
+            }
+            
+            // Complete
+            updateProgress(100, `Completed! ${stats.success} successful, ${stats.error} failed`);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Start Batch Claim';
+            isProcessing = false;
+        }
+        
+        async function claimTokens(address, blockchain, native, usdc, eurc) {
             const requestData = {
                 address: address,
                 blockchain: blockchain,
@@ -439,9 +549,6 @@
             };
             
             try {
-                console.log('Making request to:', API_ENDPOINT);
-                console.log('Request data:', requestData);
-                
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: {
@@ -450,108 +557,37 @@
                     body: JSON.stringify(requestData)
                 });
                 
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers.get('content-type'));
-                
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                let data;
-                
-                if (contentType && contentType.includes('application/json')) {
-                    data = await response.json();
-                } else {
-                    // If not JSON, get text to see the actual error
-                    const text = await response.text();
-                    console.error('Non-JSON response:', text);
-                    data = { 
-                        error: 'Server error',
-                        message: text.substring(0, 200),
-                        fullError: text
-                    };
-                }
-                
-                console.log('Response data:', data);
+                const data = await response.json();
                 
                 if (response.ok) {
-                    recordClaim(address, blockchain);
-                    showResult('success', 
-                        '✅ Tokens claimed successfully!',
-                        {
-                            ...data,
-                            nextClaimTime: new Date(Date.now() + (COOLDOWN_HOURS * 60 * 60 * 1000)).toLocaleString()
-                        }
-                    );
-                } else if (data.code === 5 || data.message?.includes('rate limit')) {
-                    // Rate limit error
-                    recordClaim(address, blockchain);
-                    showResult('error', 
-                        `⏰ Rate Limit Exceeded`,
-                        {
-                            message: data.message || 'API rate limit error',
-                            reason: 'Circle faucet limits claims to once per 24 hours per wallet/network',
-                            solutions: [
-                                '1. Wait 24 hours before claiming again with this address',
-                                '2. Try a different wallet address',
-                                '3. Try a different blockchain network',
-                                '4. Check if you recently claimed from the same IP address'
-                            ],
-                            nextAttempt: new Date(Date.now() + (COOLDOWN_HOURS * 60 * 60 * 1000)).toLocaleString()
-                        }
-                    );
+                    return { success: true, data: data };
                 } else {
-                    showResult('error', 
-                        `❌ Claim failed: ${data.message || data.error || 'Unknown error'}`,
-                        data
-                    );
+                    return { success: false, error: data.message || data.error || 'Unknown error' };
                 }
             } catch (error) {
-                console.error('Fetch error:', error);
-                showResult('error', 
-                    `❌ Connection Error: ${error.message}`,
-                    { 
-                        details: 'Failed to connect to the API endpoint',
-                        endpoint: API_ENDPOINT,
-                        error: error.toString()
-                    }
-                );
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = 'Claim Tokens';
+                return { success: false, error: error.message };
             }
         }
         
-        function showResult(type, message, data) {
-            const resultDiv = document.getElementById('result');
-            resultDiv.className = `result ${type}`;
+        function updateProgress(percent, text) {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
             
-            let html = `<strong>${message}</strong>`;
-            
-            if (data) {
-                if (data.solutions && Array.isArray(data.solutions)) {
-                    html += '<div class="tips"><strong>Solutions:</strong>';
-                    data.solutions.forEach(sol => {
-                        html += `<div style="margin: 5px 0;">• ${sol}</div>`;
-                    });
-                    html += '</div>';
-                    delete data.solutions;
-                }
-                
-                html += `<div class="response-data">${JSON.stringify(data, null, 2)}</div>`;
-            }
-            
-            resultDiv.innerHTML = html;
-            resultDiv.classList.remove('hidden');
+            progressFill.style.width = percent + '%';
+            progressFill.textContent = percent + '%';
+            progressText.textContent = text;
         }
         
-        // Load history on page load
-        loadClaimHistory();
+        function updateStats() {
+            document.getElementById('totalCount').textContent = stats.total;
+            document.getElementById('successCount').textContent = stats.success;
+            document.getElementById('errorCount').textContent = stats.error;
+            document.getElementById('pendingCount').textContent = stats.pending;
+        }
         
-        // Allow Enter key to submit
-        document.getElementById('address').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                claimTokens();
-            }
-        });
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
     </script>
 </body>
 </html>

@@ -27,15 +27,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Blockchain network required' });
     }
 
-    // Build payload - Circle API accepts booleans
+    // Build payload - Circle API accepts amount objects
     const payload = {
       address: data.address,
       blockchain: data.blockchain
     };
 
-    if (data.native) payload.native = true;
-    if (data.usdc) payload.usdc = true;
-    if (data.eurc) payload.eurc = true;
+    if (data.native) payload.native = { amount: "1" };
+    if (data.usdc) payload.usdc = { amount: "10" };
+    if (data.eurc) payload.eurc = { amount: "10" };
 
     const postData = JSON.stringify(payload);
 

@@ -1,9 +1,17 @@
-const https = require('https');
+// Build the request payload
+    // Circle API accepts booleans for token requests
+    const payload = {
+      address: data.address,
+      blockchain: data.blockchain
+    };
+
+    // Add boolean flags for requested tokens
+    if (data.nativeimport https from 'https';
 
 // Get API key from environment variable or use default
 const CIRCLE_API_KEY = process.env.CIRCLE_API_KEY || "TEST_API_KEY:1ef93a2a482adb58df2c615510b24c61:81b8e96bb7cb449fceba22574630ea0c";
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -33,14 +41,15 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Blockchain network required' });
     }
 
-    // Build the request payload with proper format
-    // Circle API requires amount objects, not boolean flags
+    // Build the request payload
+    // Circle's example only sends address and blockchain
     const payload = {
       address: data.address,
       blockchain: data.blockchain
     };
 
-    // Add token amounts if requested
+    // Check Circle's API docs for exact format of token selection
+    // Based on the enhanced-server.js, it uses amount objects
     if (data.native) {
       payload.native = { amount: "0.01" };
     }
@@ -59,7 +68,7 @@ module.exports = async (req, res) => {
     const options = {
       hostname: 'api.circle.com',
       port: 443,
-      path: '/v1/faucets/drips',
+      path: '/v1/faucet/drips',
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${CIRCLE_API_KEY}`,
@@ -117,4 +126,4 @@ module.exports = async (req, res) => {
       stack: error.stack
     });
   }
-};
+}
